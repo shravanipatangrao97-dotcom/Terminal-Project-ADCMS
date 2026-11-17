@@ -2,11 +2,12 @@
  * Command-Line Interface (CLI) Module
  * Terminal Music Player
  * 
- * Handles terminal menus, user prompts, input validation, and continuous loop interaction.
+ * Handles terminal menus, user prompts, input validation, and interactive playback operations.
  */
 
 const readline = require('readline');
 const library = require('./library');
+const player = require('./player');
 
 /**
  * Display the main application banner and menu options.
@@ -28,7 +29,59 @@ function displayMenu() {
 }
 
 /**
- * Process the user's menu choice, validate input, and display the appropriate response.
+ * Handle song selection workflow for Option 2.
+ * Displays available songs, prompts for a selection, and triggers playback.
+ * 
+ * @param {readline.Interface} rl - The active readline interface.
+ */
+function handlePlaySong(rl) {
+  const songs = library.scanMusicDirectory();
+
+  if (songs.length === 0) {
+    console.log('\nNo songs found in your music folder.');
+    console.log('Please add some audio files to continue.');
+    promptUser(rl);
+    return;
+  }
+
+  console.log('\n========== SELECT A SONG ==========\n');
+  songs.forEach((song, index) => {
+    console.log(`${index + 1}. ${song.name}`);
+  });
+
+  rl.question('\nEnter song number: ', (input) => {
+    // Check for empty or whitespace-only input
+    if (!input || input.trim() === '') {
+      console.log('\nPlease enter a choice.');
+      promptUser(rl);
+      return;
+    }
+
+    const trimmed = input.trim();
+    const songIndex = parseInt(trimmed, 10);
+
+    // Validate that input contains only numeric digits
+    if (isNaN(songIndex) || !/^\d+$/.test(trimmed)) {
+      console.log('\nInvalid input! Please enter a valid number.');
+      promptUser(rl);
+      return;
+    }
+
+    // Validate bounds
+    if (songIndex < 1 || songIndex > songs.length) {
+      console.log(`\nInvalid song number! Please enter a number between 1 and ${songs.length}.`);
+      promptUser(rl);
+      return;
+    }
+
+    const selectedSong = songs[songIndex - 1];
+    player.play(selectedSong);
+    promptUser(rl);
+  });
+}
+
+/**
+ * Process the user's menu choice, validate input, and dispatch to appropriate handlers.
  * @param {string} rawInput - The raw string entered by the user.
  * @param {readline.Interface} rl - The active readline interface.
  */
@@ -49,17 +102,16 @@ function processChoice(rawInput, rl) {
       break;
 
     case '2':
-      console.log('\nSong playback functionality will be implemented soon!');
-      promptUser(rl);
+      handlePlaySong(rl);
       break;
 
     case '3':
-      console.log('\nPause and resume functionality will be implemented soon!');
+      player.togglePauseResume();
       promptUser(rl);
       break;
 
     case '4':
-      console.log('\nStop playback functionality will be implemented soon!');
+      player.stop();
       promptUser(rl);
       break;
 
@@ -74,6 +126,7 @@ function processChoice(rawInput, rl) {
       break;
 
     case '0':
+      player.stopSilently();
       console.log('\nThank you for using Terminal Music Player. Goodbye!\n');
       rl.close();
       break;
@@ -107,6 +160,7 @@ function startCli() {
 
   // Handle Ctrl+C (SIGINT) gracefully
   const handleExit = () => {
+    player.stopSilently();
     console.log('\n\nThank you for using Terminal Music Player. Goodbye!\n');
     rl.close();
     process.exit(0);
@@ -120,6 +174,7 @@ function startCli() {
 
 module.exports = {
   displayMenu,
+  handlePlaySong,
   processChoice,
   promptUser,
   startCli,
