@@ -6,6 +6,7 @@
  */
 
 const readline = require('readline');
+const library = require('./library');
 
 /**
  * Display the main application banner and menu options.
@@ -43,7 +44,7 @@ function processChoice(rawInput, rl) {
 
   switch (choice) {
     case '1':
-      console.log('\nSong library functionality will be available soon!');
+      library.displayMusicLibrary();
       promptUser(rl);
       break;
 
