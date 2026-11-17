@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Local Audio Files
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.m4a
+*.aac
+*.wma
+music/*
+!music/.gitkeep
+
+# Logs and debug files
+*.log
+npm-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
